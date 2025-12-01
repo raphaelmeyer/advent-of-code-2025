@@ -8,7 +8,7 @@ import Test.Hspec
 
 spec :: Spec
 spec = do
-  describe "The Universe" $
+  describe "The Universe" $ do
     it "should be 42 for starters" $ do
       let solution = Day00.solve "foo"
       AoC.one solution `shouldBe` "42"

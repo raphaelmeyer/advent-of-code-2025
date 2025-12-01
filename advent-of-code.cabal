@@ -28,6 +28,13 @@ library lib-day00
     build-depends:
         aoc
 
+library lib-day01
+    import:           defaults
+    hs-source-dirs:   src/day01
+    exposed-modules:  Day01
+    build-depends:
+        aoc
+
 executable day00
     import:           defaults
     hs-source-dirs:   app/day00
@@ -35,6 +42,15 @@ executable day00
     build-depends:
         aoc,
         lib-day00
+
+executable day01
+    import:           defaults
+    hs-source-dirs:   app/day01
+    main-is:          Main.hs
+    build-depends:
+        aoc,
+        lib-day01
+
 
 test-suite specs
     import:           defaults
@@ -44,8 +60,10 @@ test-suite specs
     build-tool-depends:
         hspec-discover:hspec-discover
     other-modules:
-        Day00Spec
+        Day00Spec,
+        Day01Spec
     build-depends:
         hspec,
         aoc,
-        lib-day00
+        lib-day00,
+        lib-day01
