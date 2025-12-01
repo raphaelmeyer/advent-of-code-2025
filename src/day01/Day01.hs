@@ -13,10 +13,11 @@ type Position = Int
 type Count = Int
 
 solve :: Text.Text -> AoC.Solution
-solve input = AoC.Solution one "The universe and everything"
+solve input = AoC.Solution one two
   where
     rotations = parse input
     one = Text.pack . show . countZero $ rotations
+    two = Text.pack . show . countPassingZero $ rotations
 
 parse :: Text.Text -> [Rotation]
 parse =
@@ -38,6 +39,25 @@ rotCountZeroEnd (position, count) rotation = case rot position rotation of
   0 -> (0, count + 1)
   p -> (p, count)
 
+countPassingZero :: [Rotation] -> Int
+countPassingZero rotations = snd $ foldl rotCountPassingZero (50, 0) rotations
+
 rot :: Position -> Rotation -> Position
 rot p (RotLeft d) = mod (p - d) 100
 rot p (RotRight d) = mod (p + d) 100
+
+rotCountPassingZero :: (Position, Count) -> Rotation -> (Position, Count)
+rotCountPassingZero (position, count) rotation = (newPosition, newCount)
+  where
+    newPosition = rot position rotation
+    newCount = count + (countFullTurns rotation) + (countClick position newPosition rotation)
+
+countClick :: Position -> Position -> Rotation -> Count
+countClick 0 _ _ = 0
+countClick _ 0 _ = 1
+countClick old new (RotLeft _) = if new > old then 1 else 0
+countClick old new (RotRight _) = if new < old then 1 else 0
+
+countFullTurns :: Rotation -> Count
+countFullTurns (RotLeft distance) = div (abs distance) 100
+countFullTurns (RotRight distance) = div distance 100
