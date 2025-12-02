@@ -35,7 +35,22 @@ spec = do
       9876598765 `shouldSatisfy` Day02.isValidId
 
     it "should find invalid IDs in range" $ do
-      Day02.findInvalidIds (Day02.Range 11 22) `shouldMatchList` [11, 22]
+      Day02.findInvalidIds Day02.isValidId (Day02.Range 11 22) `shouldMatchList` [11, 22]
 
-    it "should find all invalid IDs" $ do
-      Day02.findAllInvalidIds input `shouldMatchList` [11, 22, 99, 1010, 1188511885, 222222, 446446, 38593859]
+  describe "Part two" $ do
+    it "should solve example input" $ do
+      let solution = Day02.solve exampleInput
+      AoC.two solution `shouldBe` "4174379265"
+
+    it "should identify invalid ID" $ do
+      11 `shouldSatisfy` Day02.isValidId2
+      111 `shouldSatisfy` Day02.isValidId2
+      1010 `shouldSatisfy` Day02.isValidId2
+      123123 `shouldSatisfy` Day02.isValidId2
+      123123123 `shouldSatisfy` Day02.isValidId2
+      2121212121 `shouldSatisfy` Day02.isValidId2
+      123 `shouldNotSatisfy` Day02.isValidId2
+      1213 `shouldNotSatisfy` Day02.isValidId2
+      12321 `shouldNotSatisfy` Day02.isValidId2
+      12312 `shouldNotSatisfy` Day02.isValidId2
+      5656565 `shouldNotSatisfy` Day02.isValidId2
