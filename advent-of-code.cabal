@@ -13,6 +13,7 @@ common defaults
     default-language: Haskell2010
     build-depends:
         base == 4.18.3.0,
+        containers,
         text
 
 library aoc
@@ -49,6 +50,13 @@ library lib-day03
     build-depends:
         aoc
 
+library lib-day04
+    import:           defaults
+    hs-source-dirs:   src/day04
+    exposed-modules:  Day04
+    build-depends:
+        aoc
+
 executable day00
     import:           defaults
     hs-source-dirs:   app/day00
@@ -81,6 +89,14 @@ executable day03
         aoc,
         lib-day03
 
+executable day04
+    import:           defaults
+    hs-source-dirs:   app/day04
+    main-is:          Main.hs
+    build-depends:
+        aoc,
+        lib-day04
+
 test-suite specs
     import:           defaults
     type:             exitcode-stdio-1.0
@@ -92,11 +108,13 @@ test-suite specs
         Day00Spec,
         Day01Spec,
         Day02Spec,
-        Day03Spec
+        Day03Spec,
+        Day04Spec
     build-depends:
         hspec,
         aoc,
         lib-day00,
         lib-day01,
         lib-day02,
-        lib-day03
+        lib-day03,
+        lib-day04
