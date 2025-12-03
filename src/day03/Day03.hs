@@ -26,15 +26,9 @@ sumJoltage n = Text.pack . show . sum . map (asNumber . findMaximum n . Text.unp
     asNumber = read :: String -> Int64
 
 findMaximum :: Int -> String -> String
-findMaximum 0 _ = undefined
-findMaximum 1 bank = [maximum bank]
-findMaximum n bank = searchMaximum n ('0', []) bank
-
-searchMaximum :: Int -> (Char, String) -> String -> String
-searchMaximum _ _ [] = undefined
-searchMaximum n (current, on) (j : js)
-  | length (j : js) < n = current : on
-  | otherwise = searchMaximum n updated js
+findMaximum 0 _ = []
+findMaximum n batteries = maxJoltage : findMaximum (n - 1) remaining
   where
-    updated = if current < j then (j, on') else (current, on)
-    on' = findMaximum (n - 1) js
+    maxJoltage = maximum . validSearchRange $ batteries
+    remaining = tail $ dropWhile (/= maxJoltage) batteries
+    validSearchRange = take (length batteries - n + 1)

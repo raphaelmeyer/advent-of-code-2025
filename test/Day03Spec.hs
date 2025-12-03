@@ -30,6 +30,12 @@ spec = do
     it "should solve part one" $ do
       AoC.one solution `shouldBe` "357"
 
+    it "should find the maximum power of a bank" $ do
+      Day03.findMaximum 2 "987654321111111" `shouldBe` "98"
+      Day03.findMaximum 2 "811111111111119" `shouldBe` "89"
+      Day03.findMaximum 2 "234234234234278" `shouldBe` "78"
+      Day03.findMaximum 2 "818181911112111" `shouldBe` "92"
+
   describe "Part two" $ do
     it "should solve part two" $ do
       AoC.two solution `shouldBe` "3121910778619"
