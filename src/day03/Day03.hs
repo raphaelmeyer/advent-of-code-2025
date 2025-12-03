@@ -3,10 +3,11 @@
 module Day03 where
 
 import qualified AoC
+import Data.Int
 import qualified Data.Text as Text
 
 solve :: Text.Text -> AoC.Solution
-solve input = AoC.Solution (partOne banks) "The universe and everything"
+solve input = AoC.Solution (partOne banks) (partTwo banks)
   where
     banks = parseInput input
 
@@ -14,17 +15,26 @@ parseInput :: Text.Text -> [Text.Text]
 parseInput = Text.lines
 
 partOne :: [Text.Text] -> Text.Text
-partOne input = Text.pack . show . sum $ map ((read :: String -> Int) . maximumPair . Text.unpack) input
+partOne = sumJoltage 2
 
-maximumPair :: String -> String
-maximumPair = unpair . findMaxPair ('0', '0')
+partTwo :: [Text.Text] -> Text.Text
+partTwo = sumJoltage 12
+
+sumJoltage :: Int -> [Text.Text] -> Text.Text
+sumJoltage n = Text.pack . show . sum . map (asNumber . findMaximum n . Text.unpack)
   where
-    unpair (a, b) = [a, b]
+    asNumber = read :: String -> Int64
 
-findMaxPair :: (Char, Char) -> String -> (Char, Char)
-findMaxPair pair rest = case rest of
-  [] -> undefined
-  [_] -> pair
-  (joltage : rest') -> findMaxPair pair' rest'
-    where
-      pair' = if joltage > fst pair then (joltage, maximum rest') else pair
+findMaximum :: Int -> String -> String
+findMaximum 0 _ = undefined
+findMaximum 1 bank = [maximum bank]
+findMaximum n bank = searchMaximum n ('0', []) bank
+
+searchMaximum :: Int -> (Char, String) -> String -> String
+searchMaximum _ _ [] = undefined
+searchMaximum n (current, on) (j : js)
+  | length (j : js) < n = current : on
+  | otherwise = searchMaximum n updated js
+  where
+    updated = if current < j then (j, on') else (current, on)
+    on' = findMaximum (n - 1) js

@@ -19,6 +19,7 @@ exampleInput =
 spec :: Spec
 spec = do
   let input = Day03.parseInput exampleInput
+      solution = Day03.solve exampleInput
 
   describe "Parse input" $ do
     it "split lines" $ do
@@ -27,5 +28,14 @@ spec = do
 
   describe "Part one" $ do
     it "should solve part one" $ do
-      let solution = Day03.solve exampleInput
       AoC.one solution `shouldBe` "357"
+
+  describe "Part two" $ do
+    it "should solve part two" $ do
+      AoC.two solution `shouldBe` "3121910778619"
+
+    it "should find the maximum power of a bank" $ do
+      Day03.findMaximum 12 "987654321111111" `shouldBe` "987654321111"
+      Day03.findMaximum 12 "811111111111119" `shouldBe` "811111111119"
+      Day03.findMaximum 12 "234234234234278" `shouldBe` "434234234278"
+      Day03.findMaximum 12 "818181911112111" `shouldBe` "888911112111"
