@@ -19,83 +19,49 @@ common defaults
 library aoc
     import:           defaults
     hs-source-dirs:   src/aoc
-    exposed-modules:  AoC
     -- build-depends:
-
-library lib-day00
-    import:           defaults
-    hs-source-dirs:   src/day00
-    exposed-modules:  Day00
-    build-depends:
-        aoc
-
-library lib-day01
-    import:           defaults
-    hs-source-dirs:   src/day01
-    exposed-modules:  Day01
-    build-depends:
-        aoc
-
-library lib-day02
-    import:           defaults
-    hs-source-dirs:   src/day02
-    exposed-modules:  Day02
-    build-depends:
-        aoc
-
-library lib-day03
-    import:           defaults
-    hs-source-dirs:   src/day03
-    exposed-modules:  Day03
-    build-depends:
-        aoc
-
-library lib-day04
-    import:           defaults
-    hs-source-dirs:   src/day04
-    exposed-modules:  Day04
-    build-depends:
-        aoc
+    exposed-modules:
+        Day00,
+        Day01,
+        Day02,
+        Day03,
+        Day04,
+        AoC
 
 executable day00
     import:           defaults
     hs-source-dirs:   app/day00
     main-is:          Main.hs
     build-depends:
-        aoc,
-        lib-day00
+        aoc
 
 executable day01
     import:           defaults
     hs-source-dirs:   app/day01
     main-is:          Main.hs
     build-depends:
-        aoc,
-        lib-day01
+        aoc
 
 executable day02
     import:           defaults
     hs-source-dirs:   app/day02
     main-is:          Main.hs
     build-depends:
-        aoc,
-        lib-day02
+        aoc
 
 executable day03
     import:           defaults
     hs-source-dirs:   app/day03
     main-is:          Main.hs
     build-depends:
-        aoc,
-        lib-day03
+        aoc
 
 executable day04
     import:           defaults
     hs-source-dirs:   app/day04
     main-is:          Main.hs
     build-depends:
-        aoc,
-        lib-day04
+        aoc
 
 test-suite specs
     import:           defaults
@@ -112,9 +78,4 @@ test-suite specs
         Day04Spec
     build-depends:
         hspec,
-        aoc,
-        lib-day00,
-        lib-day01,
-        lib-day02,
-        lib-day03,
-        lib-day04
+        aoc
