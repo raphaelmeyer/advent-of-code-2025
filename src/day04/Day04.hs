@@ -54,12 +54,5 @@ countNeighbors grid position = length . filter (`Set.member` grid) $ possibleNei
 
 possibleNeighbors :: Position -> [Position]
 possibleNeighbors (Position x y) =
-  [ Position (x - 1) (y - 1),
-    Position (x) (y - 1),
-    Position (x + 1) (y - 1),
-    Position (x - 1) (y),
-    Position (x + 1) (y),
-    Position (x - 1) (y + 1),
-    Position (x) (y + 1),
-    Position (x + 1) (y + 1)
-  ]
+  filter (Position x y /=) $
+    [Position (x + dx) (y + dy) | dx <- [-1 .. 1], dy <- [-1 .. 1]]
