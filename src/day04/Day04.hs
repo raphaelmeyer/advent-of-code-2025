@@ -12,12 +12,18 @@ data Position = Position Int Int
 type Grid = Set.Set Position
 
 solve :: Text.Text -> AoC.Solution
-solve input = AoC.Solution (partOne grid) "The universe and everything"
+solve input = AoC.Solution (partOne grid) (partTwo grid)
   where
     grid = parse input
 
 partOne :: Grid -> Text.Text
 partOne = Text.pack . show . countAccessible
+
+partTwo :: Grid -> Text.Text
+partTwo input = Text.pack . show $ removed
+  where
+    removed = Set.size input - Set.size remaining
+    remaining = removeAllAccessible input
 
 parse :: Text.Text -> Grid
 parse = fst . foldl parseLine (Set.empty, 0) . Text.lines
@@ -33,6 +39,15 @@ parsePosition (grid, x, y) _ = (grid, x + 1, y)
 
 countAccessible :: Grid -> Int
 countAccessible grid = Set.size $ Set.filter ((< 4) . countNeighbors grid) $ grid
+
+removeAllAccessible :: Grid -> Grid
+removeAllAccessible grid =
+  if grid == grid' then grid else removeAllAccessible grid'
+  where
+    grid' = removeAccessible grid
+
+removeAccessible :: Grid -> Grid
+removeAccessible grid = Set.filter ((>= 4) . countNeighbors grid) grid
 
 countNeighbors :: Grid -> Position -> Int
 countNeighbors grid position = length . filter (`Set.member` grid) $ possibleNeighbors position

@@ -44,3 +44,7 @@ spec = do
     it "should count its neighbors" $ do
       Day04.countNeighbors input (Day04.Position 8 3) `shouldBe` 4
       Day04.countNeighbors input (Day04.Position 4 4) `shouldBe` 8
+
+  describe "Part one" $ do
+    it "should solve part two" $ do
+      AoC.two solution `shouldBe` "43"
