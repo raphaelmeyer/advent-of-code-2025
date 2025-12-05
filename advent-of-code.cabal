@@ -27,6 +27,7 @@ library aoc
         Day03,
         Day04,
         Day05,
+        Day06,
         AoC
 
 executable day00
@@ -71,6 +72,13 @@ executable day05
     build-depends:
         aoc
 
+executable day06
+    import:           defaults
+    hs-source-dirs:   app/day06
+    main-is:          Main.hs
+    build-depends:
+        aoc
+
 test-suite specs
     import:           defaults
     type:             exitcode-stdio-1.0
@@ -84,7 +92,8 @@ test-suite specs
         Day02Spec,
         Day03Spec,
         Day04Spec,
-        Day05Spec
+        Day05Spec,
+        Day06Spec
     build-depends:
         hspec,
         aoc
