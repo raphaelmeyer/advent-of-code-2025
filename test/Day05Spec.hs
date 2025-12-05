@@ -44,3 +44,12 @@ spec = do
     it "should solve part one" $ do
       let solution = Day05.solve exampleInput
       AoC.one solution `shouldBe` "3"
+
+  describe "Part two" $ do
+    it "should solve part two" $ do
+      let solution = Day05.solve exampleInput
+      AoC.two solution `shouldBe` "14"
+
+    it "should merge overlapping intervals" $ do
+      let ranges = Day05.combineRanges (Day05.dbFresh input)
+      ranges `shouldMatchList` [Day05.Range 3 5, Day05.Range 10 20]
