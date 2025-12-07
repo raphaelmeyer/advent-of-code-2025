@@ -3,6 +3,7 @@
 module Day07 where
 
 import qualified AoC
+import qualified Control.Monad.State as State
 import Data.Int (Int64)
 import qualified Data.Map.Strict as Map
 import qualified Data.Maybe as Maybe
@@ -27,6 +28,8 @@ partOne = Text.pack . show . countSplits
 
 partTwo :: Teleporter -> Text.Text
 partTwo = Text.pack . show . countPaths
+
+-- partTwo = Text.pack . show . countPathsDfs
 
 -- parse input
 
@@ -103,3 +106,35 @@ passFreelyQuantum count paths beam = Map.alter (addPath count) beam paths
 addPath :: Int64 -> Maybe Int64 -> Maybe Int64
 addPath count Nothing = Just count
 addPath count (Just oldCount) = Just $ oldCount + count
+
+-- part two (DFS with memoization)
+
+data Track = Track {foldIndex :: Int, beamPos :: Int} deriving (Eq, Ord, Show)
+
+type Memo = Map.Map Track Int64
+
+countPathsDfs :: Teleporter -> Int64
+countPathsDfs teleporter = State.evalState doCount Map.empty
+  where
+    doCount = countQuantumPaths (manifolds teleporter) (Track 0 $ start teleporter)
+
+countQuantumPaths :: [Manifold] -> Track -> State.State Memo Int64
+countQuantumPaths [] _ = pure 1
+countQuantumPaths ms track = do
+  memo <- State.get
+  case Map.lookup track memo of
+    Just count -> pure count
+    Nothing -> do
+      count <- checkQuantumBeam ms track
+      State.modify $ Map.insert track count
+      pure count
+
+checkQuantumBeam :: [Manifold] -> Track -> State.State Memo Int64
+checkQuantumBeam [] _ = undefined
+checkQuantumBeam (manifold : ms) track =
+  if beamPos track `Set.member` manifold
+    then do
+      left <- countQuantumPaths ms track {foldIndex = foldIndex track + 1, beamPos = beamPos track - 1}
+      right <- countQuantumPaths ms track {foldIndex = foldIndex track + 1, beamPos = beamPos track + 1}
+      pure $ left + right
+    else countQuantumPaths ms track {foldIndex = foldIndex track + 1}

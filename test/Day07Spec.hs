@@ -60,3 +60,6 @@ spec = do
   describe "Part two" $ do
     it "should solve example part two" $ do
       AoC.two solution `shouldBe` "40"
+
+    it "should solve with DFS and memoization" $ do
+      Day07.countPathsDfs input `shouldBe` 40
