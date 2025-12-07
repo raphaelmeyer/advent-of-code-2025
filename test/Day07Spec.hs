@@ -33,6 +33,7 @@ exampleInput =
 spec :: Spec
 spec = do
   let input = Day07.parse exampleInput
+  let solution = Day07.solve exampleInput
 
   describe "Parse input" $ do
     it "should parse the start position" $ do
@@ -51,8 +52,11 @@ spec = do
 
   describe "Part one" $ do
     it "should solve example part one" $ do
-      let solution = Day07.solve exampleInput
       AoC.one solution `shouldBe` "21"
 
     it "should count the splits" $ do
       Day07.countSplits input `shouldBe` 21
+
+  describe "Part two" $ do
+    it "should solve example part two" $ do
+      AoC.two solution `shouldBe` "40"

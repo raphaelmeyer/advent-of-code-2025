@@ -3,13 +3,13 @@
 module Day07 where
 
 import qualified AoC
+import Data.Int (Int64)
+import qualified Data.Map.Strict as Map
 import qualified Data.Maybe as Maybe
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 
 type Manifold = Set.Set Int
-
-type Beams = Set.Set Int
 
 data Teleporter = Teleporter
   { start :: Int,
@@ -18,12 +18,15 @@ data Teleporter = Teleporter
   deriving (Eq, Show)
 
 solve :: Text.Text -> AoC.Solution
-solve input = AoC.Solution (partOne teleporter) "The universe and everything"
+solve input = AoC.Solution (partOne teleporter) (partTwo teleporter)
   where
     teleporter = parse input
 
 partOne :: Teleporter -> Text.Text
 partOne = Text.pack . show . countSplits
+
+partTwo :: Teleporter -> Text.Text
+partTwo = Text.pack . show . countPaths
 
 -- parse input
 
@@ -34,7 +37,7 @@ parse input =
       manifolds = map parseManifold (tail rows)
     }
   where
-    rows = Text.lines input
+    rows = filter (not . Text.null) . Text.lines $ input
 
 findStart :: Text.Text -> Int
 findStart input = Maybe.fromMaybe undefined (Text.findIndex (== 'S') input)
@@ -47,6 +50,8 @@ findSplitter (manifold, idx) '^' = (Set.insert idx manifold, idx + 1)
 findSplitter (manifold, idx) _ = (manifold, idx + 1)
 
 -- part one
+
+type Beams = Set.Set Int
 
 countSplits :: Teleporter -> Int
 countSplits teleporter = fst . foldl countSplitsInOneFold (0, Set.singleton $ start teleporter) $ manifolds teleporter
@@ -68,3 +73,33 @@ splitBeam (splits, beams) beam = (splits + 1, Set.insert (beam - 1) . Set.insert
 
 passFreely :: (Int, Beams) -> Int -> (Int, Beams)
 passFreely (splits, beams) beam = (splits, Set.insert beam beams)
+
+-- part two
+
+type Paths = Map.Map Int Int64
+
+countPaths :: Teleporter -> Int64
+countPaths teleporter = accumulateAllEndPosition processQuantumBeams
+  where
+    processQuantumBeams = foldl countPathsInOneFold (Map.singleton (start teleporter) 1) $ manifolds teleporter
+    accumulateAllEndPosition = Map.foldl (+) 0
+
+countPathsInOneFold :: Paths -> Manifold -> Paths
+countPathsInOneFold paths manifold = Map.foldlWithKey (countQuantumBeam manifold) Map.empty paths
+
+countQuantumBeam :: Manifold -> Paths -> Int -> Int64 -> Paths
+countQuantumBeam manifold paths beam count =
+  if beam `hitsSplitter` manifold
+    then splitQuantumBeam count paths beam
+    else passFreelyQuantum count paths beam
+
+splitQuantumBeam :: Int64 -> Paths -> Int -> Paths
+splitQuantumBeam count paths beam =
+  Map.alter (addPath count) (beam - 1) . Map.alter (addPath count) (beam + 1) $ paths
+
+passFreelyQuantum :: Int64 -> Paths -> Int -> Paths
+passFreelyQuantum count paths beam = Map.alter (addPath count) beam paths
+
+addPath :: Int64 -> Maybe Int64 -> Maybe Int64
+addPath count Nothing = Just count
+addPath count (Just oldCount) = Just $ oldCount + count
