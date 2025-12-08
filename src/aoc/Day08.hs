@@ -23,12 +23,15 @@ type Circuit = Set.Set Position
 type Circuits = Map.Map Int Circuit
 
 solve :: Text.Text -> AoC.Solution
-solve input = AoC.Solution (partOne boxes) "The universe and everything"
+solve input = AoC.Solution (partOne pairs circuits) (partTwo pairs circuits)
   where
-    boxes = parse input
+    (pairs, circuits) = prepare . parse $ input
 
-partOne :: Boxes -> Text.Text
-partOne = Text.pack . show . largestCircuits 1000
+partOne :: [Pair] -> Circuits -> Text.Text
+partOne pairs = Text.pack . show . largestCircuits 1000 pairs
+
+partTwo :: [Pair] -> Circuits -> Text.Text
+partTwo pairs = Text.pack . show . lastConnection pairs
 
 -- parse input
 
@@ -42,35 +45,12 @@ parsePosition input = case coordAsList of
   where
     coordAsList = map (read . Text.unpack) . Text.splitOn "," $ input
 
--- part one
-
-largestCircuits :: Int -> Boxes -> Int
-largestCircuits n boxes = product . take 3 . reverse . List.sort . map (fromIntegral . Set.size) . Map.elems $ connected
+prepare :: Boxes -> ([Pair], Circuits)
+prepare boxes = (pairsSortedByDistance, circuits)
   where
-    connected = connectTimes n circuits ds
-    ds = distances . uniquePairs $ boxes
     circuits = unconnectedCircuits boxes
-
-connectTimes :: Int -> Circuits -> Distances -> Circuits
-connectTimes n circuits ds = foldTimes n connect circuits $ pairsSortedByDistance
-  where
     pairsSortedByDistance = map (ds Map.!) $ sortedDistances ds
-
-sortedDistances :: Distances -> [Int]
-sortedDistances = List.sort . Map.keys
-
-connect :: Circuits -> Pair -> Circuits
-connect circuits (Pair a b) =
-  if aId == bId
-    then circuits
-    else merge circuits
-  where
-    (aId, aCircuit) = findCircuit a circuits
-    (bId, bCircuit) = findCircuit b circuits
-    merge = Map.delete bId . Map.insert aId (Set.union aCircuit bCircuit)
-
-findCircuit :: Position -> Circuits -> (Int, Circuit)
-findCircuit box = head . Map.toList . Map.filter (Set.member box)
+    ds = distances . uniquePairs $ boxes
 
 uniquePairs :: Boxes -> Set.Set Pair
 uniquePairs boxes = Set.fromList $ [Pair a b | (a : js) <- List.tails sorted, b <- js]
@@ -93,7 +73,53 @@ distance (Pair (Position ax ay az) (Position bx by bz)) =
     dy = ay - by
     dz = az - bz
 
+-- part one
+
+largestCircuits :: Int -> [Pair] -> Circuits -> Int
+largestCircuits n pairs circuits = product . largest $ connected
+  where
+    largest = take 3 . reverse . List.sort . map (fromIntegral . Set.size) . Map.elems
+    connected = connectTimes n pairs circuits
+
+connectTimes :: Int -> [Pair] -> Circuits -> Circuits
+connectTimes n pairs circuits = foldTimes n connect circuits pairs
+
+sortedDistances :: Distances -> [Int]
+sortedDistances = List.sort . Map.keys
+
+connect :: Circuits -> Pair -> Circuits
+connect circuits (Pair a b) =
+  if aId == bId
+    then circuits
+    else merge circuits
+  where
+    (aId, aCircuit) = findCircuit a circuits
+    (bId, bCircuit) = findCircuit b circuits
+    merge = Map.delete bId . Map.insert aId (Set.union aCircuit bCircuit)
+
+findCircuit :: Position -> Circuits -> (Int, Circuit)
+findCircuit box = head . Map.toList . Map.filter (Set.member box)
+
 foldTimes :: Int -> (a -> b -> a) -> a -> [b] -> a
 foldTimes _ _ acc [] = acc
 foldTimes 0 _ acc _ = acc
 foldTimes n f acc (x : xs) = foldTimes (n - 1) f (f acc x) xs
+
+-- part two
+
+lastConnection :: [Pair] -> Circuits -> Int
+lastConnection pairs circuits = a * b
+  where
+    (Pair (Position a _ _) (Position b _ _)) = connectAll circuits pairs
+
+connectAll :: Circuits -> [Pair] -> Pair
+connectAll _ [] = undefined
+connectAll circuits (Pair a b : pairs)
+  | aId == bId = connectAll circuits pairs
+  | Map.size merged == 1 = Pair a b
+  | otherwise = connectAll merged pairs
+  where
+    (aId, aCircuit) = findCircuit a circuits
+    (bId, bCircuit) = findCircuit b circuits
+    merged =
+      Map.delete bId . Map.insert aId (Set.union aCircuit bCircuit) $ circuits

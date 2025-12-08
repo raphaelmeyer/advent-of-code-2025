@@ -36,6 +36,7 @@ exampleInput =
 spec :: Spec
 spec = do
   let boxes = Day08.parse exampleInput
+      (pairs, circuits) = Day08.prepare boxes
 
   describe "Parse input" $ do
     it "should parse junction box positions" $ do
@@ -45,11 +46,16 @@ spec = do
 
   describe "Part one" $ do
     it "should solve example part one" $ do
-      let solution = Day08.largestCircuits 10 boxes
+      let solution = Day08.largestCircuits 10 pairs circuits
       solution `shouldBe` 40
 
     it "should find all unique pairs" $ do
-      let pairs = Day08.uniquePairs boxes
-      Set.size pairs `shouldBe` 190 -- (n - 1)(n)/2
-      pairs `shouldSatisfy` Set.member (Day08.Pair (Day08.Position 52 470 668) (Day08.Position 57 618 57))
-      pairs `shouldNotSatisfy` Set.member (Day08.Pair (Day08.Position 57 618 57) (Day08.Position 52 470 668))
+      let uniquePairs = Day08.uniquePairs boxes
+      Set.size uniquePairs `shouldBe` 190 -- (n - 1)(n)/2
+      uniquePairs `shouldSatisfy` Set.member (Day08.Pair (Day08.Position 52 470 668) (Day08.Position 57 618 57))
+      uniquePairs `shouldNotSatisfy` Set.member (Day08.Pair (Day08.Position 57 618 57) (Day08.Position 52 470 668))
+
+  describe "Part two" $ do
+    it "should solve example part two" $ do
+      let solution = Day08.lastConnection pairs circuits
+      solution `shouldBe` 25272
