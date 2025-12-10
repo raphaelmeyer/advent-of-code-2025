@@ -35,6 +35,7 @@ library aoc
         Day07,
         Day08,
         Day09,
+        Day10,
         Day11,
         Day12
 
@@ -108,6 +109,13 @@ executable day09
     build-depends:
         aoc
 
+executable day10
+    import:           defaults
+    hs-source-dirs:   app/day10
+    main-is:          Main.hs
+    build-depends:
+        aoc
+        
 executable day11
     import:           defaults
     hs-source-dirs:   app/day11
@@ -140,6 +148,7 @@ test-suite specs
         Day07Spec,
         Day08Spec,
         Day09Spec,
+        Day10Spec,
         Day11Spec,
         Day12Spec
     build-depends:
