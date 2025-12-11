@@ -23,9 +23,32 @@ exampleInput =
       "iii: out"
     ]
 
+exampleInput2 :: Text.Text
+exampleInput2 =
+  Text.intercalate
+    "\n"
+    [ "svr: aaa bbb",
+      "aaa: fft",
+      "fft: ccc",
+      "bbb: tty",
+      "tty: ccc",
+      "ccc: ddd eee",
+      "ddd: hub",
+      "hub: fff",
+      "eee: dac",
+      "dac: fff",
+      "fff: ggg hhh",
+      "ggg: out",
+      "hhh: out"
+    ]
+
 spec :: Spec
 spec = do
   describe "Example" $ do
     it "should solve example part one" $ do
       let solution = Day11.solve exampleInput
       AoC.one solution `shouldBe` "5"
+
+    it "should solve example part two" $ do
+      let solution = Day11.solve exampleInput2
+      AoC.two solution `shouldBe` "2"
