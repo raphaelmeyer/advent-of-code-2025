@@ -4,46 +4,120 @@ module Day10 where
 
 import qualified AoC
 import Control.Applicative ((<|>))
-import qualified Data.Bits as Bits
+import qualified Control.Monad.State as State
 import qualified Data.Char as Char
+import qualified Data.Map as Map
 import qualified Data.Maybe as Maybe
 import qualified Data.Text as Text
 import qualified Text.ParserCombinators.ReadP as ReadP
 
+type Indicator = [Bool]
+
+type Button = [Bool]
+
+type Joltage = [Int]
+
 data Machine = Machine
-  { mIndicator :: Int,
-    mButtons :: [Int]
+  { mIndicator :: Indicator,
+    mButtons :: [Button],
+    mJoltage :: Joltage
   }
   deriving (Eq, Show)
 
 solve :: Text.Text -> AoC.Solution
-solve input = AoC.Solution (partOne machines) "The universe and everything"
+solve input = AoC.Solution (partOne machines) (partTwo machines)
   where
     machines = parse input
 
 partOne :: [Machine] -> Text.Text
 partOne = Text.pack . show . sum . map countButtonPress
 
+partTwo :: [Machine] -> Text.Text
+partTwo = Text.pack . show . sum . map countJoltageButtonPresses
+
 -- part one
 
 countButtonPress :: Machine -> Int
 countButtonPress machine =
-  Maybe.fromMaybe undefined $
-    pressButtons (mIndicator machine) (mButtons machine) 0
-
-pressButtons :: Int -> [Int] -> Int -> Maybe Int
-pressButtons goal [] indicator =
-  if goal == indicator then Just 0 else Nothing
-pressButtons goal (button : buttons) indicator
-  | indicator == goal = Just 0
-  | otherwise = case (doPress, doNotPress) of
-      (Just yes, Just no) -> Just $ min (yes + 1) no
-      (Just yes, _) -> Just (1 + yes)
-      (_, Just no) -> Just no
-      _ -> Nothing
+  minimum . map length $
+    findButtonsForIndicator (mIndicator machine) (mButtons machine) initial
   where
-    doPress = pressButtons goal buttons $ Bits.xor indicator button
-    doNotPress = pressButtons goal buttons indicator
+    initial = replicate (length . mIndicator $ machine) False
+
+findButtonsForIndicator :: Indicator -> [Button] -> Indicator -> [[Button]]
+findButtonsForIndicator expected [] current = [[] | expected == current]
+findButtonsForIndicator expected (button : buttons) current =
+  map (button :) doPress ++ doNotPress
+  where
+    doPress = findButtonsForIndicator expected buttons $ pressButton button current
+    doNotPress = findButtonsForIndicator expected buttons current
+
+pressButton :: Button -> Indicator -> Indicator
+pressButton = zipWith (\toggle light -> if toggle then not light else light)
+
+-- part two
+
+data Memo = Memo
+  { memoCounts :: Map.Map Joltage (Maybe Int),
+    memoButtons :: Map.Map Indicator [[Button]]
+  }
+
+countJoltageButtonPresses :: Machine -> Int
+countJoltageButtonPresses machine =
+  Maybe.fromJust $
+    State.evalState startSearch (Memo Map.empty Map.empty)
+  where
+    startSearch = search (mButtons machine) (mJoltage machine)
+
+search :: [Button] -> Joltage -> State.State Memo (Maybe Int)
+search buttons joltage
+  | all (== 0) joltage = pure $ Just 0
+  | any (< 0) joltage = undefined -- validated after un-applying buttons
+  | otherwise = do
+      memo <- State.gets memoCounts
+      case Map.lookup joltage memo of
+        Just count -> pure count
+        Nothing -> do
+          candidates <- findCandidates buttons joltage
+          searchCandidates <- mapM (search buttons . snd) candidates
+          let maybeCounts = zipWith sumPresses (map fst candidates) searchCandidates
+          case Maybe.catMaybes maybeCounts of
+            [] -> pure Nothing
+            counts -> do
+              let minCount = Just $ minimum counts
+              State.modify (\s -> s {memoCounts = Map.insert joltage minCount $ memoCounts s})
+              pure minCount
+  where
+    sumPresses count = fmap ((+ count) . (* 2))
+
+findCandidates :: [Button] -> Joltage -> State.State Memo [(Int, Joltage)]
+findCandidates buttons joltage = do
+  let oddJoltage = map odd joltage
+  memo <- State.gets memoButtons
+  presses <- case Map.lookup oddJoltage memo of
+    Just combinations -> pure combinations
+    Nothing -> do
+      let combinations = findButtonsForIndicator (map odd joltage) buttons lookForAllEven
+      State.modify (\s -> s {memoButtons = Map.insert oddJoltage combinations $ memoButtons s})
+      pure combinations
+  pure
+    . halveJoltages
+    . removeInvalid
+    . map (unapplyButtons . addNumPress)
+    $ presses
+  where
+    lookForAllEven = replicate (length joltage) False
+    addNumPress candidate = (length candidate, candidate)
+    unapplyButtons = withSnd (foldr unpressJoltageButton joltage)
+    removeInvalid = filter (all (>= 0) . snd)
+    halveJoltages = map (withSnd halve)
+    halve = map (`div` 2)
+
+unpressJoltageButton :: Button -> Joltage -> Joltage
+unpressJoltageButton = zipWith (\toggle joltage -> if toggle then joltage - 1 else joltage)
+
+withSnd :: (b -> c) -> (a, b) -> (a, c)
+withSnd f (a, b) = (a, f b)
 
 -- parse input
 
@@ -56,37 +130,34 @@ parseMachine input = case ReadP.readP_to_S pMachine $ Text.unpack input of
   x -> error . show $ x
 
 pMachine :: ReadP.ReadP Machine
-pMachine =
-  Machine
-    <$> pIndicator
-    <*> pButtons
-    <* pJoltage
-    <* ReadP.skipSpaces
-    <* ReadP.eof
+pMachine = do
+  indicator <- pIndicator
+  buttons <- pButtons (length indicator)
+  joltage <- pJoltage
+  _ <- ReadP.skipSpaces <* ReadP.eof
+  pure $ Machine indicator buttons joltage
 
-pIndicator :: ReadP.ReadP Int
+pIndicator :: ReadP.ReadP Indicator
 pIndicator = do
   diagram <-
     ReadP.between (pConsume '[') (pConsume ']') $
       ReadP.many1 (ReadP.char '.' <|> ReadP.char '#')
   pure $ decodeDiagram diagram
 
-pButtons :: ReadP.ReadP [Int]
-pButtons = ReadP.many1 pButton
+pButtons :: Int -> ReadP.ReadP [Button]
+pButtons n = ReadP.many1 (pButton n)
 
-pJoltage :: ReadP.ReadP ()
-pJoltage = do
-  _ <-
-    ReadP.between (pConsume '{') (pConsume '}') $
-      ReadP.sepBy pNumber pComma
-  pure ()
+pJoltage :: ReadP.ReadP Joltage
+pJoltage =
+  ReadP.between (pConsume '{') (pConsume '}') $
+    ReadP.sepBy pNumber pComma
 
-pButton :: ReadP.ReadP Int
-pButton = do
+pButton :: Int -> ReadP.ReadP Button
+pButton n = do
   bs <-
     ReadP.between (pConsume '(') (pConsume ')') $
       ReadP.sepBy pNumber pComma
-  pure $ decodeButton bs
+  pure $ decodeButton n bs
 
 pNumber :: ReadP.ReadP Int
 pNumber = do
@@ -99,12 +170,8 @@ pComma = ReadP.skipSpaces <* ReadP.char ','
 pConsume :: Char -> ReadP.ReadP ()
 pConsume c = ReadP.skipSpaces <* ReadP.char c
 
-decodeDiagram :: String -> Int
-decodeDiagram = foldr setBit 0
-  where
-    setBit c n = case c of
-      '#' -> (`Bits.setBit` 0) . (`Bits.shiftL` 1) $ n
-      _ -> Bits.shiftL n 1
+decodeDiagram :: String -> Indicator
+decodeDiagram = map (== '#')
 
-decodeButton :: [Int] -> Int
-decodeButton = foldr (flip Bits.setBit) 0
+decodeButton :: Int -> [Int] -> Button
+decodeButton n toggles = map (`elem` toggles) [0 .. n - 1]
