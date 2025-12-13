@@ -12,7 +12,8 @@ import qualified Text.ParserCombinators.ReadP as ReadP
 
 data Machine = Machine
   { mIndicator :: Int,
-    mButtons :: [Int]
+    mButtons :: [Int],
+    mJoltage :: [Int]
   }
   deriving (Eq, Show)
 
@@ -45,6 +46,17 @@ pressButtons goal (button : buttons) indicator
     doPress = pressButtons goal buttons $ Bits.xor indicator button
     doNotPress = pressButtons goal buttons indicator
 
+-- part two
+
+countJoltageButtonPresses :: Machine -> Int
+countJoltageButtonPresses _ = undefined
+
+pressJoltageButton :: Int -> [Int] -> [Int]
+pressJoltageButton _ [] = []
+pressJoltageButton button (j : js) = addJoltage : pressJoltageButton (Bits.shiftR button 1) js
+  where
+    addJoltage = if Bits.testBit button 0 then j + 1 else j
+
 -- parse input
 
 parse :: Text.Text -> [Machine]
@@ -60,7 +72,7 @@ pMachine =
   Machine
     <$> pIndicator
     <*> pButtons
-    <* pJoltage
+    <*> pJoltage
     <* ReadP.skipSpaces
     <* ReadP.eof
 
@@ -74,12 +86,10 @@ pIndicator = do
 pButtons :: ReadP.ReadP [Int]
 pButtons = ReadP.many1 pButton
 
-pJoltage :: ReadP.ReadP ()
-pJoltage = do
-  _ <-
-    ReadP.between (pConsume '{') (pConsume '}') $
-      ReadP.sepBy pNumber pComma
-  pure ()
+pJoltage :: ReadP.ReadP [Int]
+pJoltage =
+  ReadP.between (pConsume '{') (pConsume '}') $
+    ReadP.sepBy pNumber pComma
 
 pButton :: ReadP.ReadP Int
 pButton = do

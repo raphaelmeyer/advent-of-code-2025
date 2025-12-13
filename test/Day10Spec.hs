@@ -23,6 +23,11 @@ spec = do
     it "should solve the example" $ do
       let solution = Day10.solve exampleInput
       AoC.one solution `shouldBe` "7"
+      AoC.two solution `shouldBe` "33"
+
+  describe "Part two" $ do
+    it "should add joltage on button press" $ do
+      Day10.pressJoltageButton 0b10110 [2, 3, 5, 7, 11] `shouldBe` [2, 4, 6, 7, 12]
 
   describe "Parse input" $ do
     it "should parse all machines" $ do
