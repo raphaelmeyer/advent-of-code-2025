@@ -16,7 +16,8 @@ common defaults
         containers,
         extra,
         mtl,
-        text
+        text,
+        vector
 
 library aoc
     import:           defaults
@@ -34,7 +35,8 @@ library aoc
         Day07,
         Day08,
         Day09,
-        Day11
+        Day11,
+        Day12
 
 executable day00
     import:           defaults
@@ -113,6 +115,13 @@ executable day11
     build-depends:
         aoc
 
+executable day12
+    import:           defaults
+    hs-source-dirs:   app/day12
+    main-is:          Main.hs
+    build-depends:
+        aoc
+
 test-suite specs
     import:           defaults
     type:             exitcode-stdio-1.0
@@ -132,6 +141,7 @@ test-suite specs
         Day08Spec,
         Day09Spec,
         Day11Spec,
+        Day12Spec
     build-depends:
         hspec,
         aoc
